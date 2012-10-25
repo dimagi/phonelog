@@ -44,7 +44,7 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
 #                temp_user = TempCommCareUser(self.domain, HQUserType.human_readable[user_type], "unknownID")
 #                self._users.append(temp_user)
         rows = []
-        query_string = self.request.META['QUERY_STRING']
+        query_string = self.report_request.META['QUERY_STRING']
         child_report_url = DeviceLogDetailsReport.get_url(self.domain)
         for user in self.users:
             key = [self.domain, "errors_only", user.get('raw_username')]
@@ -117,42 +117,42 @@ class DeviceLogDetailsReport(PhonelogReport):
     @property
     def errors_only(self):
         if self._errors_only is None:
-            self._errors_only = self.request.GET.get(DeviceLogTagField.errors_only_slug, False)
+            self._errors_only = self.report_request.GET.get(DeviceLogTagField.errors_only_slug, False)
         return self._errors_only
 
     _device_log_users = None
     @property
     def device_log_users(self):
         if self._device_log_users is None:
-            self._device_log_users = self.request.GET.getlist(DeviceLogUsersField.slug)
+            self._device_log_users = self.report_request.GET.getlist(DeviceLogUsersField.slug)
         return self._device_log_users
 
     _selected_tags = None
     @property
     def selected_tags(self):
         if self._selected_tags is None:
-            self._selected_tags = self.request.GET.getlist(DeviceLogTagField.slug)
+            self._selected_tags = self.report_request.GET.getlist(DeviceLogTagField.slug)
         return self._selected_tags
 
     _devices = None
     @property
     def devices(self):
         if self._devices is None:
-            self._devices = self.request.GET.getlist(DeviceLogDevicesField.slug)
+            self._devices = self.report_request.GET.getlist(DeviceLogDevicesField.slug)
         return self._devices
 
     _goto_key = None
     @property
     def goto_key(self):
         if self._goto_key is None:
-            self._goto_key = self.request_params.get('goto', None)
+            self._goto_key = self.report_request.params.get('goto', None)
         return self._goto_key
 
     _limit = None
     @property
     def limit(self):
         if self._limit is None:
-            self._limit = self.request_params.get('limit', 100)
+            self._limit = self.report_request.params.get('limit', 100)
         return self._limit
 
     @property
@@ -290,5 +290,5 @@ class DeviceLogDetailsReport(PhonelogReport):
         return row_set
 
     def _filter_query_by_slug(self, slug):
-        current_query = self.request.META['QUERY_STRING'].split('&')
+        current_query = self.report_request.META['QUERY_STRING'].split('&')
         return "&".join([query_item for query_item in current_query if not query_item.startswith(slug)])
