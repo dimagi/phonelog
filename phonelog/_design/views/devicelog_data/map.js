@@ -38,7 +38,7 @@ function(doc) {
                 if (is_warning === true || is_error === true) {
                     entry.isWarning = is_warning;
                     entry.isError = is_error;
-                    emit([doc.domain, "errors_only", logged_in_user, entry['@date']], entry);
+                    emit([doc.domain, "errors_only", entry.device_users[0], entry['@date']], entry);
                     emit([doc.domain, "all_errors_only", entry['@date']], entry);
                 }
 

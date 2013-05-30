@@ -29,7 +29,7 @@ class PhonelogReport(DeploymentsReport, DatespanMixin):
 class FormErrorReport(DeploymentsReport, DatespanMixin):
     name = "Errors & Warnings Summary"
     slug = "form_errors"
-    fields = ['corehq.apps.reports.fields.FilterUsersField',
+    fields = ['corehq.apps.reports.fields.DeviceLogUsersField',
               'corehq.apps.reports.fields.GroupField',
               'corehq.apps.reports.fields.DatespanField']
 
@@ -44,16 +44,19 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
 
     @property
     def rows(self):
-#        for user_type in [HQUserType.DEMO_USER, HQUserType.ADMIN]:
-#            if self.user_filter[user_type].show\
-#            and not HQUserType.human_readable[user_type] in self.usernames:
-#                temp_user = TempCommCareUser(self.domain, HQUserType.human_readable[user_type], "unknownID")
-#                self._users.append(temp_user)
+        user_results = get_db().view('phonelog/device_log_users',
+                               startkey=[self.domain],
+                               endkey=[self.domain, {}],
+                               group=True,
+                               reduce=True,
+                               stale='update_after')
+        device_users = [(u['key'][1], u['key'][2]) for u in user_results]
+
         rows = []
         query_string = self.request.META['QUERY_STRING']
         child_report_url = DeviceLogDetailsReport.get_url(domain=self.domain)
-        for user in self.users:
-            key = [self.domain, "errors_only", user.get('raw_username')]
+        for user_id, username in device_users:
+            key = [self.domain, "errors_only", username]
             data = get_db().view("phonelog/devicelog_data",
                     reduce=True,
                     startkey=key+[self.datespan.startdate_param_utc],
@@ -73,7 +76,7 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
                                         else '<span class="label">%d</span>' % error_count
 
             from corehq.apps.reports.util import make_form_couch_key
-            key = make_form_couch_key(self.domain, user_id=user.get('user_id'))
+            key = make_form_couch_key(self.domain, user_id=user_id)
             data = get_db().view("reports_forms/all_forms",
                 startkey=key + [self.datespan.startdate_param_utc],
                 endkey=key + [self.datespan.enddate_param_utc, {}],
@@ -85,11 +88,11 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
                 "url": child_report_url,
                 "error_slug": DeviceLogTagField.errors_only_slug,
                 "username_slug": DeviceLogUsersField.slug,
-                "username": user.get('username_in_report'),
-                "raw_username": user.get('raw_username'),
+                "username": username,
+                "raw_username": username,
                 "query_string": "%s&" % query_string if query_string else ""
             }
-            rows.append([self.table_cell(user.get('raw_username'), username_formatted),
+            rows.append([self.table_cell(username, username_formatted),
                          self.table_cell(form_count),
                          self.table_cell(warning_count, formatted_warning_count),
                          self.table_cell(error_count, formatted_error_count)])
