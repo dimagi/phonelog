@@ -20,7 +20,7 @@ DATA_NOTICE = ugettext_noop(
 class PhonelogReport(DeploymentsReport, DatespanMixin):
     fields = ['corehq.apps.reports.fields.FilterUsersField',
               'corehq.apps.reports.fields.GroupField',
-              'corehq.apps.reports.fields.DatespanField']
+              'corehq.apps.reports.filters.dates.DatespanFilter']
 
     special_notice = DATA_NOTICE
 
@@ -31,7 +31,7 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
     slug = "form_errors"
     fields = ['corehq.apps.reports.fields.FilterUsersField',
               'corehq.apps.reports.fields.GroupField',
-              'corehq.apps.reports.fields.DatespanField']
+              'corehq.apps.reports.filters.dates.DatespanFilter']
 
     special_notice = DATA_NOTICE
 
@@ -98,7 +98,7 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
 class DeviceLogDetailsReport(PhonelogReport):
     name = "Device Log Details"
     slug = "log_details"
-    fields = ['corehq.apps.reports.fields.DatespanField',
+    fields = ['corehq.apps.reports.filters.dates.DatespanFilter',
               'corehq.apps.reports.fields.DeviceLogTagField',
               'corehq.apps.reports.fields.DeviceLogUsersField',
               'corehq.apps.reports.fields.DeviceLogDevicesField']
