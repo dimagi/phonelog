@@ -2,10 +2,10 @@ import json
 import logging
 from collections import defaultdict
 from django.utils import html
+from corehq.apps.reports.filters.devicelog import DeviceLogTagFilter, DeviceLogUsersFilter, DeviceLogDevicesFilter
 from corehq.apps.reports.standard import DatespanMixin
 from corehq.apps.reports.standard.deployments import DeploymentsReport
 from corehq.apps.reports.datatables import DataTablesHeader, DataTablesColumn, DTSortType, DTSortDirection
-from corehq.apps.reports.fields import DeviceLogTagField, DeviceLogUsersField, DeviceLogDevicesField
 from dimagi.utils.couch.database import get_db
 from dimagi.utils.decorators.memoized import memoized
 from dimagi.utils.timezones import utils as tz_utils
@@ -83,8 +83,8 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
             form_count = data[0]['value'] if data else 0
             username_formatted = '<a href="%(url)s?%(query_string)s%(error_slug)s=True&%(username_slug)s=%(raw_username)s">%(username)s</a>' % {
                 "url": child_report_url,
-                "error_slug": DeviceLogTagField.errors_only_slug,
-                "username_slug": DeviceLogUsersField.slug,
+                "error_slug": DeviceLogTagFilter.errors_only_slug,
+                "username_slug": DeviceLogUsersFilter.slug,
                 "username": user.get('username_in_report'),
                 "raw_username": user.get('raw_username'),
                 "query_string": "%s&" % query_string if query_string else ""
@@ -99,9 +99,9 @@ class DeviceLogDetailsReport(PhonelogReport):
     name = "Device Log Details"
     slug = "log_details"
     fields = ['corehq.apps.reports.filters.dates.DatespanFilter',
-              'corehq.apps.reports.fields.DeviceLogTagField',
-              'corehq.apps.reports.fields.DeviceLogUsersField',
-              'corehq.apps.reports.fields.DeviceLogDevicesField']
+              'corehq.apps.reports.filters.devicelog.DeviceLogTagFilter',
+              'corehq.apps.reports.filters.devicelog.DeviceLogUsersFilter',
+              'corehq.apps.reports.filters.devicelog.DeviceLogDevicesFilter']
     tag_labels = {
         "exception": "label-important",
         "rms-repair": "label-important",
@@ -127,28 +127,28 @@ class DeviceLogDetailsReport(PhonelogReport):
     @property
     def errors_only(self):
         if self._errors_only is None:
-            self._errors_only = self.request.GET.get(DeviceLogTagField.errors_only_slug, False)
+            self._errors_only = self.request.GET.get(DeviceLogTagFilter.errors_only_slug, False)
         return self._errors_only
 
     _device_log_users = None
     @property
     def device_log_users(self):
         if self._device_log_users is None:
-            self._device_log_users = self.request.GET.getlist(DeviceLogUsersField.slug)
+            self._device_log_users = self.request.GET.getlist(DeviceLogUsersFilter.slug)
         return self._device_log_users
 
     _selected_tags = None
     @property
     def selected_tags(self):
         if self._selected_tags is None:
-            self._selected_tags = self.request.GET.getlist(DeviceLogTagField.slug)
+            self._selected_tags = self.request.GET.getlist(DeviceLogTagFilter.slug)
         return self._selected_tags
 
     _selected_devices = None
     @property
     def selected_devices(self):
         if self._selected_devices is None:
-            self._selected_devices = set(self.request.GET.getlist(DeviceLogDevicesField.slug))
+            self._selected_devices = set(self.request.GET.getlist(DeviceLogDevicesFilter.slug))
         return self._selected_devices
 
     _filters = None
@@ -295,8 +295,8 @@ class DeviceLogDetailsReport(PhonelogReport):
 
     def _create_rows(self, data, matching_key=None):
         row_set = []
-        user_query = self._filter_query_by_slug(DeviceLogUsersField.slug)
-        device_query = self._filter_query_by_slug(DeviceLogDevicesField.slug)
+        user_query = self._filter_query_by_slug(DeviceLogUsersFilter.slug)
+        device_query = self._filter_query_by_slug(DeviceLogDevicesFilter.slug)
         for item in data:
             entry = item['value']
             date = entry['@date']
@@ -305,7 +305,7 @@ class DeviceLogDetailsReport(PhonelogReport):
             username = entry.get('user','unknown')
             username_fmt = '<a href="%(url)s">%(username)s</a>' % {
                 "url": "%s?%s=%s&%s" % (self.get_url(domain=self.domain),
-                                        DeviceLogUsersField.slug,
+                                        DeviceLogUsersFilter.slug,
                                         username,
                                         user_query),
                 "username": username
@@ -314,7 +314,7 @@ class DeviceLogDetailsReport(PhonelogReport):
             device_users = entry.get('device_users', [])
             device_users_fmt = ', '.join([ 
                 '<a href="%(url)s">%(username)s</a>' % { "url": "%s?%s=%s&%s" % (self.get_url(domain=self.domain),
-                                                                                 DeviceLogUsersField.slug,
+                                                                                 DeviceLogUsersFilter.slug,
                                                                                  username,
                                                                                  user_query),
                                                          "username": username }
@@ -339,7 +339,7 @@ class DeviceLogDetailsReport(PhonelogReport):
             device = entry.get('device_id','')
             device_fmt = '<a href="%(url)s">%(device)s</a>' % {
                 "url": "%s?%s=%s&%s" % (self.get_url(domain=self.domain),
-                                        DeviceLogDevicesField.slug,
+                                        DeviceLogDevicesFilter.slug,
                                         device,
                                         device_query),
                 "device": device
