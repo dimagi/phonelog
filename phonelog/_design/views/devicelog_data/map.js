@@ -1,14 +1,15 @@
-function(doc) {
+function (doc) {
     // !code util.js
 
-    function clone(obj){
-        if(obj == null || typeof(obj) != 'object')
+    function clone(obj) {
+        if (obj == null || typeof(obj) != 'object')
             return obj;
         var temp = obj.constructor(); // changed
-        for(var key in obj)
+        for (var key in obj)
             temp[key] = clone(obj[key]);
         return temp;
     }
+
     var error_tags = ['exception', 'rms-repair', 'rms-spill'],
         warning_tags = ['case-recreate', 'permissions_notify', 'time message'];
     if (doc.xmlns == 'http://code.javarosa.org/devicereport') {
@@ -30,7 +31,7 @@ function(doc) {
             entry.version = doc.form.app_version;
             entry.device_id = doc.form.device_id;
 
-            if(entry.type == 'login')
+            if (entry.type == 'login')
                 logged_in_user = entry.msg.substring(entry.msg.indexOf('-') + 1);
             entry.user = logged_in_user;
 
@@ -48,21 +49,21 @@ function(doc) {
                 }
 
                 if (user_subreport_usernames.length !== 0) {
-                  var usernames = user_subreport_usernames;
+                    var usernames = user_subreport_usernames;
                 } else {
-                  var usernames = [logged_in_user];
+                    var usernames = [logged_in_user];
                 }
 
                 // Single Parameters
                 emit([doc.domain, "tag", entry.type, entry['@date']], entry);
                 emit([doc.domain, "device", doc.form.device_id, entry['@date']], entry);
-                emit([doc.domain, "user", usernames, entry['@date']], entry);
+                emit([doc.domain, "user", usernames, entry['@date']], entry);
 
                 // Coupled Parameters
                 emit([doc.domain, "tag_device", entry.type, doc.form.device_id, entry['@date']], entry);
-                emit([doc.domain, "tag_user", entry.type, usernames, entry['@date']], entry);
-                emit([doc.domain, "user_device", usernames, doc.form.device_id, entry['@date']], entry);
-                emit([doc.domain, "tag_user_device", entry.type, usernames, doc.form.device_id, entry['@date']], entry);
+                emit([doc.domain, "tag_user", entry.type, usernames, entry['@date']], entry);
+                emit([doc.domain, "user_device", usernames, doc.form.device_id, entry['@date']], entry);
+                emit([doc.domain, "tag_user_device", entry.type, usernames, doc.form.device_id, entry['@date']], entry);
             }
 
         }
