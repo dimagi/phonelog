@@ -29,7 +29,7 @@ TAGS = {
 class PhonelogReport(DeploymentsReport, DatespanMixin):
     fields = ['corehq.apps.reports.fields.FilterUsersField',
               'corehq.apps.reports.fields.GroupField',
-              'corehq.apps.reports.fields.DatespanField']
+              'corehq.apps.reports.filters.dates.DatespanFilter']
 
     special_notice = DATA_NOTICE
 
@@ -41,7 +41,7 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
     slug = "form_errors"
     fields = ['corehq.apps.reports.fields.FilterUsersField',
               'corehq.apps.reports.fields.GroupField',
-              'corehq.apps.reports.fields.DatespanField']
+              'corehq.apps.reports.filters.dates.DatespanFilter']
 
     special_notice = DATA_NOTICE
     is_cacheable = False
@@ -96,7 +96,7 @@ class DeviceLogDetailsReport(PhonelogReport):
     # report framework requires unique names todo: remove (New)
     name = ugettext_noop("Device Log Details (New)")
     slug = "log_details"
-    fields = ['corehq.apps.reports.fields.DatespanField',
+    fields = ['corehq.apps.reports.filters.dates.DatespanFilter',
               'corehq.apps.reports.filters.devicelog.DeviceLogTagFilter',
               'corehq.apps.reports.filters.devicelog.DeviceLogUsersFilter',
               'corehq.apps.reports.filters.devicelog.DeviceLogDevicesFilter']
