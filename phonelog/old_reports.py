@@ -102,9 +102,9 @@ class DeviceLogDetailsReport(PhonelogReport):
     name = ugettext_noop("Device Log Details")
     slug = "old_log_details"
     fields = ['corehq.apps.reports.filters.dates.DatespanFilter',
-              'corehq.apps.reports.fields.DeviceLogTagField',
-              'corehq.apps.reports.fields.DeviceLogUsersField',
-              'corehq.apps.reports.fields.DeviceLogDevicesField']
+              'corehq.apps.reports.dont_use.fields.DeviceLogTagField',
+              'corehq.apps.reports.dont_use.fields.DeviceLogUsersField',
+              'corehq.apps.reports.dont_use.fields.DeviceLogDevicesField']
     tag_labels = {
         "exception": "label-important",
         "rms-repair": "label-important",
