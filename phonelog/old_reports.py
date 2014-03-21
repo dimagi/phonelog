@@ -7,7 +7,7 @@ from corehq.apps.reports.datatables.DTSortType import DATE
 from corehq.apps.reports.standard import DatespanMixin
 from corehq.apps.reports.standard.deployments import DeploymentsReport
 from corehq.apps.reports.datatables import DataTablesHeader, DataTablesColumn, DTSortType, DTSortDirection
-from corehq.apps.reports.fields import DeviceLogTagField, DeviceLogUsersField, DeviceLogDevicesField
+from corehq.apps.reports.dont_use.fields import DeviceLogTagField, DeviceLogUsersField, DeviceLogDevicesField
 from dimagi.utils.couch.database import get_db
 from dimagi.utils.decorators.memoized import memoized
 from dimagi.utils.timezones import utils as tz_utils
