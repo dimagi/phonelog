@@ -21,7 +21,7 @@ DATA_NOTICE = ugettext_noop(
         "be updated over time")
 
 class PhonelogReport(DeploymentsReport, DatespanMixin):
-    fields = ['corehq.apps.reports.fields.FilterUsersField',
+    fields = ['corehq.apps.reports.filters.users.UserTypeFilter',
               'corehq.apps.reports.filters.select.GroupFilter',
               'corehq.apps.reports.filters.dates.DatespanFilter']
 
@@ -32,7 +32,7 @@ class PhonelogReport(DeploymentsReport, DatespanMixin):
 class FormErrorReport(DeploymentsReport, DatespanMixin):
     name = ugettext_noop("Errors & Warnings Summary")
     slug = "old_form_errors"
-    fields = ['corehq.apps.reports.fields.FilterUsersField',
+    fields = ['corehq.apps.reports.filters.users.UserTypeFilter',
               'corehq.apps.reports.filters.select.GroupFilter',
               'corehq.apps.reports.filters.dates.DatespanFilter']
 

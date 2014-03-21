@@ -27,7 +27,7 @@ TAGS = {
 }
 
 class PhonelogReport(DeploymentsReport, DatespanMixin):
-    fields = ['corehq.apps.reports.fields.FilterUsersField',
+    fields = ['corehq.apps.reports.filters.users.UserTypeFilter',
               'corehq.apps.reports.filters.select.GroupFilter',
               'corehq.apps.reports.filters.dates.DatespanFilter']
 
@@ -39,7 +39,7 @@ class FormErrorReport(DeploymentsReport, DatespanMixin):
     # report framework requires unique names todo: remove (New)
     name = ugettext_noop("Errors & Warnings Summary (New)")
     slug = "form_errors"
-    fields = ['corehq.apps.reports.fields.FilterUsersField',
+    fields = ['corehq.apps.reports.filters.users.UserTypeFilter',
               'corehq.apps.reports.filters.select.GroupFilter',
               'corehq.apps.reports.filters.dates.DatespanFilter']
 
