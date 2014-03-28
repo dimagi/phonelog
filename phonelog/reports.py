@@ -42,8 +42,7 @@ class PhonelogReport(GetParamsMixin, DeploymentsReport, DatespanMixin, Paginated
 
 
 class FormErrorReport(PhonelogReport):
-    # report framework requires unique names todo: remove (New)
-    name = ugettext_noop("Errors & Warnings Summary (New)")
+    name = ugettext_noop("Errors & Warnings Summary")
     slug = "form_errors"
     fields = ['corehq.apps.reports.filters.users.UserTypeFilter',
               'corehq.apps.reports.filters.select.GroupFilter',
@@ -91,11 +90,23 @@ class FormErrorReport(PhonelogReport):
             self.total_records = len(self.users)
             return sorted(self.users, reverse=direction=='desc')[paged]
         logs = {"errors": self.error_logs, "warnings": self.warning_logs}[by]
-        username_count = logs.values('username').annotate(usernames=Count('username'))[paged]
-        usernames = [uc["username"] for uc in username_count]
-        self.total_records = len(usernames)
-        user = lambda u: _report_user_dict(CommCareUser.get_by_username(u))
-        return [user('%s@%s.commcarehq.org' % (u, self.domain)) for u in usernames]
+        self.total_records = logs.values('username').annotate(usernames=Count('username')).count()
+
+        if direction == 'desc':
+            username_data = logs.values('username').annotate(usernames=Count('username'))\
+            .order_by('usernames')[paged]
+        else:
+            username_data = logs.values('username').annotate(usernames=Count('username'))\
+            .order_by('usernames').reverse()[paged]
+        usernames = [uc["username"] for uc in username_data]
+
+        def make_user(username):
+            user = CommCareUser.get_by_username('%s@%s.commcarehq.org' % (username, self.domain))
+            if user:
+                return _report_user_dict(user)
+            return {"raw_username": username, "username_in_report": username}
+
+        return [make_user(u) for u in usernames]
 
     @property
     def rows(self):
@@ -103,10 +114,8 @@ class FormErrorReport(PhonelogReport):
         query_string = self.request.META['QUERY_STRING']
         child_report_url = DeviceLogDetailsReport.get_url(domain=self.domain)
         for user in self.users_to_show:
-            phonelogs = Log.objects.filter(username__exact=user.get('raw_username'), domain__exact=self.domain,
-                date__range=[self.datespan.startdate_param_utc, self.datespan.enddate_param_utc])
-            error_count = phonelogs.filter(type__in=TAGS["error"]).count()
-            warning_count = phonelogs.filter(type__in=TAGS["warning"]).count()
+            error_count = self.error_logs.filter(username__exact=user.get('raw_username')).count()
+            warning_count = self.warning_logs.filter(username__exact=user.get('raw_username')).count()
 
             formatted_warning_count = '<span class="label label-warning">%d</span>' % warning_count if warning_count > 0\
                                         else '<span class="label">%d</span>' % warning_count
@@ -125,8 +134,7 @@ class FormErrorReport(PhonelogReport):
         return rows
 
 class DeviceLogDetailsReport(PhonelogReport):
-    # report framework requires unique names todo: remove (New)
-    name = ugettext_noop("Device Log Details (New)")
+    name = ugettext_noop("Device Log Details")
     slug = "log_details"
     fields = ['corehq.apps.reports.filters.dates.DatespanFilter',
               'corehq.apps.reports.filters.devicelog.DeviceLogTagFilter',
@@ -196,29 +204,6 @@ class DeviceLogDetailsReport(PhonelogReport):
                 self._filters.add('user')
 
         return self._filters
-
-    _devices_for_users = None
-    @property
-    def devices_for_users(self):
-        if self._devices_for_users is None:
-            device_ids_for_username = defaultdict(set)
-
-            for datum in get_db().view('phonelog/device_log_users',
-                                       startkey=[self.domain],
-                                       endkey=[self.domain, {}],
-                                       group=True,
-                                       reduce=True,
-                                       stale=settings.COUCH_STALE_QUERY):
-                # Begin dependency on particulars of view output
-                username = datum['key'][2]
-                device_id = datum['key'][1]
-                # end dependency
-                device_ids_for_username[username].add(device_id)
-
-            self._devices_for_users = set([device_id for user in self.device_log_users
-                                                     for device_id in device_ids_for_username[user]])
-
-        return self._devices_for_users
 
     @property
     def devices(self):
